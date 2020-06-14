@@ -10,18 +10,18 @@ output:
 Based on COVID-19 case and death data from the [New York Times COVID-19 data repository](https://github.com/nytimes/covid-19-data) and population data from [US Census Bureau](https://www2.census.gov/programs-surveys/popest/datasets/2010-2019/counties/totals/).
 
 ```{r echo = FALSE}
-covid_st <- read.csv("~/COVID-19/nytimes/covid-19-data/us-states.csv")
+covid_st <- read.csv("../nytimes/covid-19-data/us-states.csv")
 covid_st$date <- as.Date(covid_st$date)
 
-covid_co <- read.csv("~/COVID-19/nytimes/covid-19-data/us-counties.csv")
+covid_co <- read.csv("../nytimes/covid-19-data/us-counties.csv")
 covid_co$date <- as.Date(covid_co$date)
 
-pop_co <- read.csv("~/COVID-19/census/co-est2019-alldata.csv")[, c("STATE", "COUNTY", "STNAME", "CTYNAME", "POPESTIMATE2019")]
-pop_st <- read.csv("~/COVID-19/census/SCPRC-EST2019-18+POP-RES.csv")[, c("STATE", "NAME", "POPESTIMATE2019")]
+pop_co <- read.csv("../census/co-est2019-alldata.csv")[, c("STATE", "COUNTY", "STNAME", "CTYNAME", "POPESTIMATE2019")]
+pop_st <- read.csv("../census/SCPRC-EST2019-18+POP-RES.csv")[, c("STATE", "NAME", "POPESTIMATE2019")]
 
 # https://gist.github.com/dantonnoriega/bf1acd2290e15b91e6710b6fd3be0a53
 
-postal <- read.csv("~/COVID-19/dantonnoriega/us-state-ansi-fips.csv")
+postal <- read.csv("../dantonnoriega/us-state-ansi-fips.csv")
 
 # merge state data
 
