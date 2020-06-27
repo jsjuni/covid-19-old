@@ -30,18 +30,28 @@ m_st <- merge(x=m_st, y=postal, by.x="fips", by.y="st")
 
 # add data for last week
 
-m_st$w_ago <- m_st$date - 7
-m_st <- merge(x=m_st, y=m_st[, c("date", "fips", "cases", "deaths")], by.x=c("fips", "w_ago"), by.y=c("fips", "date"), all.x=TRUE, suffixes=c("", ".lw"))
+m_st$w1 <- m_st$date - 7
+m_st <- merge(x=m_st, y=m_st[, c("date", "fips", "cases", "deaths")], by.x=c("fips", "w1"), by.y=c("fips", "date"), all.x=TRUE, suffixes=c("", ".w1"))
+
+# add data for two weeks ago
+
+m_st$w2 <- m_st$date - 14
+m_st <- merge(x=m_st, y=m_st[, c("date", "fips", "cases", "deaths")], by.x=c("fips", "w2"), by.y=c("fips", "date"), all.x=TRUE, suffixes=c("", ".w2"))
 
 # calculate per capita rates
 
 m_st$cases_permil <- m_st$cases / m_st$POPESTIMATE2019 * 1000000.
 m_st$deaths_permil <- m_st$deaths / m_st$POPESTIMATE2019 * 1000000.
 
-m_st$new_cases <- m_st$cases - m_st$cases.lw
-m_st$new_deaths <- m_st$deaths - m_st$deaths.lw
+m_st$new_cases <- m_st$cases - m_st$cases.w1
+m_st$new_deaths <- m_st$deaths - m_st$deaths.w1
 m_st$new_cases_permil <- m_st$new_cases / m_st$POPESTIMATE2019 * 1000000.
 m_st$new_deaths_permil <- m_st$new_deaths / m_st$POPESTIMATE2019 * 1000000.
+
+m_st$new_case_rate <- m_st$cases - 2 * m_st$cases.w1 + m_st$cases.w2
+m_st$new_death_rate <- m_st$deaths - 2 * m_st$deaths.w1 + m_st$deaths.w2
+m_st$new_case_rate_permil <- m_st$new_case_rate / m_st$POPESTIMATE2019 * 1000000.
+m_st$new_death_rate_permil <- m_st$new_death_rate / m_st$POPESTIMATE2019 * 1000000.
 
 # calculate ranks for each date
 
@@ -50,6 +60,8 @@ for (date in min(m_st$date):max(m_st$date)) {
   m_st[m_st$date == date, "d_rank"] <- rank(m_st[m_st$date == date, "deaths_permil"])
   m_st[m_st$date == date, "new_c_rank"] <- rank(m_st[m_st$date == date, "new_cases_permil"])
   m_st[m_st$date == date, "new_d_rank"] <- rank(m_st[m_st$date == date, "new_deaths_permil"])
+  m_st[m_st$date == date, "new_c_rate_rank"] <- rank(m_st[m_st$date == date, "new_case_rate_permil"])
+  m_st[m_st$date == date, "new_d_rate_rank"] <- rank(m_st[m_st$date == date, "new_death_rate_permil"])
 }
 
 # merge county data
@@ -235,6 +247,7 @@ for (state in states) {
 } 
 
 ```
+
 ## All States
 
 ```{r echo=FALSE}
@@ -306,5 +319,41 @@ for (state in t_st$state[new_d_order_st]) {
   main <- sprintf("%.0f %s", st_df$new_d_rank[nrow(st_df)], st_df$stusps[1])
   plot(xrange, yrange, type="n", main=main, xlab="", ylab="")
   lines(st_df$date, st_df$new_deaths_permil)
+}
+```
+
+### New Case Rate Per Million
+
+```{r echo=FALSE, fig.height=20}
+new_c_rate_order_st <- order(t_st$new_c_rate_rank)
+par(mfrow=c(rows, cols))
+par(mar=c(2, 2, 2, 1))
+df <- m_st[!is.na(m_st$new_case_rate_permil),]
+xrange <- range(df$date)
+yrange <- range(df$new_case_rate_permil)
+for (state in t_st$state[new_c_rate_order_st]) {
+  st_df <- df[df$state == state, ]
+  st_df <- st_df[order(st_df$date), ]
+  main <- sprintf("%.0f %s", st_df$new_c_rate_rank[nrow(st_df)], st_df$stusps[1])
+  plot(xrange, yrange, type="n", main=main, xlab="", ylab="")
+  lines(st_df$date, st_df$new_case_rate_permil)
+}
+```
+
+### New Death Rate Per Million
+
+```{r echo=FALSE, fig.height=20}
+new_d_rate_order_st <- order(t_st$new_d_rate_rank)
+par(mfrow=c(rows, cols))
+par(mar=c(2, 2, 2, 1))
+df <- m_st[!is.na(m_st$new_death_rate_permil),]
+xrange <- range(df$date)
+yrange <- range(df$new_death_rate_permil)
+for (state in t_st$state[new_d_rate_order_st]) {
+  st_df <- df[df$state == state, ]
+  st_df <- st_df[order(st_df$date), ]
+  main <- sprintf("%.0f %s", st_df$new_d_rate_rank[nrow(st_df)], st_df$stusps[1])
+  plot(xrange, yrange, type="n", main=main, xlab="", ylab="")
+  lines(st_df$date, st_df$new_death_rate_permil)
 }
 ```
